@@ -124,13 +124,13 @@ local function loadListInternet(list, term)
 		local k = c[1] .. " " .. c[2]
 		db[k] = h
 	end
-	local f = io.open("cache.json", "w")
+	local f = io.open("cache" .. term .. ".json", "w")
 	f:write(lunajson.encode(db))
 	f:close()
 	return db
 end
 local function loadListLocal(list, term)
-	local f = io.open("cache.json", "r")
+	local f = io.open("cache" .. term .. ".json", "r")
 	local r = f:read()
 	f:close()
 	return lunajson.decode(r)
@@ -153,6 +153,33 @@ local function printSchedule(sections)
 	for i,sec in pairs(sections) do
 		printSection(sec)
 	end
+	local days = {}
+	days['M'] = {}
+	days['T'] = {}
+	days['W'] = {}
+	days['R'] = {}
+	days['F'] = {}
+	local insert = function(arr, sess)
+		local i = 1
+		while i <= #arr and arr[i].t0 < sess.t0 do
+			i = i + 1
+		end
+		table.insert(arr, i, sess)
+	end
+	for i,sec in pairs(sections) do
+		for j,sess in pairs(sec.sessions) do
+			insert(days[sess.day], sess)
+		end
+	end
+	for i=1,5 do
+		local dl = { 'M', 'T', 'W', 'R', 'F' }
+		local dn = { 'Monday', 'Tuesday',
+			'Wednesday', 'Thursday', 'Friday' }
+		print(dn[i])
+		for j,sess in pairs(days[dl[i]]) do
+			print("", sess.t0, sess.t2, sess.building)
+		end
+	end
 end
 
 local function getSched(
@@ -164,9 +191,13 @@ local function getSched(
 		lc = 0
 		wanti = wanti + 1
 		if wanti > #wants then
-			print("Schedule:")
-			printSchedule(sections)
-			table.insert(workingSchedules, sections)
+--			print("Schedule:")
+--			printSchedule(sections)
+			local clone = {}
+			for i = 1,#sections do
+				table.insert(clone, sections[i])
+			end
+			table.insert(workingSchedules, clone)
 			return
 		end
 	end
@@ -211,7 +242,10 @@ end
 local function getSchedule(wants)
 	local ws = {}
 	getSched(wants, 0, {}, 1, 0, ws)
-	print(#ws)
+	print(#ws .. " schedules found")
+	for i,sections in pairs(ws) do
+		printSchedule(sections)
+	end
 end
 
 getSchedule({
