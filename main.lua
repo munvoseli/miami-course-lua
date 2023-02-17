@@ -145,6 +145,11 @@ local function printSection(sec)
 	end
 end
 local function printSchedule(sections)
+	local sum = 0
+	for i,sec in pairs(sections) do
+		sum = sum + sec.hours
+	end
+	print("Credit hours: " .. sum)
 	for i,sec in pairs(sections) do
 		printSection(sec)
 	end

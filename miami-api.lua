@@ -72,7 +72,8 @@ local function sectionDataToSection(j)
 		sessions = sessions,
 		tmin = tmin,
 		tmax = tmax,
-		attribs = j.attributes
+		attribs = j.attributes,
+		hours = j.creditHoursLow
 	}
 	if #j.instructors > 0 then
 		res.instructor = j.instructors[1].person.formalDisplayedName
