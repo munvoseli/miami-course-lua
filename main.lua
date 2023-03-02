@@ -233,8 +233,20 @@ local function getSched(
 		local subj = wants[wanti].possible[i][1]
 		local num  = wants[wanti].possible[i][2]
 		local sectionsb = db[subj .. " " .. num].sections
-		for j,section in pairs(sectionsb) do
-			dosec(i, section)
+		local duplicate = false
+		for j2,s2 in pairs(sections) do
+			if s2.subcode == subj and s2.cnum == num then
+				duplicate = true
+			end
+		end
+		if duplicate then
+			getSched(
+				wants, i, sections,
+				wanti, ci + 1, workingSchedules)
+		else
+			for j,section in pairs(sectionsb) do
+				dosec(i, section)
+			end
 		end
 	end
 end
