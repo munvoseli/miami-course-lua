@@ -135,7 +135,28 @@ local function loadListLocal(list, term)
 	f:close()
 	return lunajson.decode(r)
 end
-local db = loadListInternet(list, "202310")
+local function loadListHybrid(list, term)
+	local db = loadListLocal(list, term)
+	for i,c in pairs(list) do
+		local k = c[1] .. " " .. c[2]
+		if db[k] ~= nil then
+			print(k .. " cached")
+		else
+			print("Getting " .. k)
+			local secs = miami_api.infoToSections(c[1], c[2], term)
+			db[k] = {
+				subcode = c[1],
+				cnum = c[2],
+				sections = secs
+			}
+		end
+	end
+	local f = io.open("cache" .. term .. ".json", "w")
+	f:write(lunajson.encode(db))
+	f:close()
+	return db
+end
+local db = loadListHybrid(list, "202310")
 
 
 local function printSection(sec)
