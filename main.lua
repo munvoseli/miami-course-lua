@@ -70,10 +70,6 @@ end
 --guidToSection("0a2e8a23-f934-457b-b1a8-bec9b79c4e08")
 --))
 
---[[
-what customer wants from the product
---]]
-
 local wants = {
 	{
 		ct = 2,
@@ -184,10 +180,10 @@ local db = loadListHybrid(wantsToList(wants), "202310")
 
 
 local function printSection(sec)
-	print(sec.subcode, sec.cnum, sec.section, sec.tmin)
-	for i,sess in pairs(sec.sessions) do
-		print("", "", sess.day, sess.t0, sess.t2, sess.building)
-	end
+	print(sec.subcode, sec.cnum, sec.section--[[, sec.tmin--]])
+--	for i,sess in pairs(sec.sessions) do
+--		print("", "", sess.day, sess.t0, sess.t2, sess.building)
+--	end
 end
 local function printSchedule(sections)
 	local sum = 0
@@ -301,6 +297,7 @@ local function getSchedule(wants)
 	getSched(wants, 0, {}, 1, 0, ws)
 	print(#ws .. " schedules found")
 	for i,sections in pairs(ws) do
+		print()
 		printSchedule(sections)
 	end
 end
