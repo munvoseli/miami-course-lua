@@ -74,21 +74,45 @@ end
 what customer wants from the product
 --]]
 
-
-local list = {
-{ "BIO", "115H" },
-{ "CSE", "262" },
-{ "CSE", "374" },
-{ "CSE", "381" },
-{ "CSE", "383" },
-{ "MTH", "441" },
-{ "MTH", "411" },
-{ "MTH", "425" },
-{ "MTH", "438" },
-{ "MTH", "483" },
-{ "MTH", "486" },
-{ "MTH", "491" },
+local wants = {
+	{
+		ct = 2,
+		possible = {
+			{ "CSE", "262" },
+			{ "CSE", "374" },
+			{ "CSE", "381" },
+			{ "CSE", "383" },
+		}
+	},
+	{
+		ct = 2,
+		possible = {
+			{ "MTH", "441" },
+			{ "MTH", "411" },
+			{ "MTH", "438" },
+			{ "MTH", "483" },
+			{ "MTH", "486" },
+			{ "MTH", "491" },
+		}
+	},
+	{
+		ct = 1,
+		possible = {
+			{ "BIO", "115H" },
+			{ "RUS", "101H" },
+		}
+	},
 }
+
+local function wantsToList(wants)
+	local list = {}
+	for k,v in pairs(wants) do
+		for k2,c in pairs(v.possible) do
+			table.insert(list, c)
+		end
+	end
+	return list
+end
 
 local function sessionListsConflict(l1, l2)
 	local sessionsConflict = function(a, b)
@@ -156,7 +180,7 @@ local function loadListHybrid(list, term)
 	f:close()
 	return db
 end
-local db = loadListHybrid(list, "202310")
+local db = loadListHybrid(wantsToList(wants), "202310")
 
 
 local function printSection(sec)
@@ -281,31 +305,4 @@ local function getSchedule(wants)
 	end
 end
 
-getSchedule({
-	{
-		ct = 2,
-		possible = {
-			{ "CSE", "262" },
-			{ "CSE", "374" },
-			{ "CSE", "381" },
-			{ "CSE", "383" },
-		}
-	},
-	{
-		ct = 2,
-		possible = {
-			{ "MTH", "441" },
-			{ "MTH", "411" },
-			{ "MTH", "438" },
-			{ "MTH", "483" },
-			{ "MTH", "486" },
-			{ "MTH", "491" },
-		}
-	},
-	{
-		ct = 1,
-		possible = {
-			{ "BIO", "115H" },
-		}
-	},
-})
+getSchedule(wants)
