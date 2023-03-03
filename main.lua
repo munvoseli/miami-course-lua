@@ -151,6 +151,9 @@ local function loadListInternet(list, term)
 end
 local function loadListLocal(list, term)
 	local f = io.open("cache" .. term .. ".json", "r")
+	if f == nil then
+		return {}
+	end
 	local r = f:read()
 	f:close()
 	return lunajson.decode(r)
