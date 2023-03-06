@@ -1,3 +1,6 @@
+local M = {}
+
+
 local lunajson = require("lunajson")
 local http_req = require("http.request")
 local miami_api = require("miami-api")
@@ -69,37 +72,6 @@ end
 --print(lunajson.encode(
 --guidToSection("0a2e8a23-f934-457b-b1a8-bec9b79c4e08")
 --))
-
-local wants = {
-	{
-		ct = 4,
-		possible = {
-			{ "CSE", "262" },
-			{ "CSE", "374" },
-			{ "CSE", "381" },
-			{ "CSE", "383" },
-			{ "CSE", "385" },
-			{ "CSE", "474" },
-			{ "ENG", "313" },
-			-- CSE 480 / 491?
-			{ "MTH", "425" },
-			{ "MTH", "441" },
-			{ "MTH", "411" },
-			{ "MTH", "438" },
-			{ "MTH", "483" },
-			{ "MTH", "486" },
-			{ "MTH", "491" },
---			{ "STC", "135" },
-		}
-	},
-	{
-		ct = 1,
-		possible = {
-			{ "BIO", "115H" },
---			{ "RUS", "101H" },
-		}
-	},
-}
 
 local function wantsToList(wants)
 	local list = {}
@@ -180,7 +152,6 @@ local function loadListHybrid(list, term)
 	f:close()
 	return db
 end
-local db = loadListHybrid(wantsToList(wants), "202310")
 
 
 local function printSection(sec)
@@ -229,7 +200,8 @@ end
 
 local function getSched(
 	wants, lc, sections,
-	wanti, ci, workingSchedules
+	wanti, ci, workingSchedules,
+	db
 )
 	if wants[wanti].ct == ci then
 		ci = 0
@@ -251,12 +223,6 @@ local function getSched(
 	local courseend = #wants[wanti].possible
 
 	local dosec = function(i, section)
-		if section.tmin ~= nil and section.tmin < 605 then
-			return
-		end
-		if section.tmax ~= nil and section.tmax > 17 * 60 then
-			return
-		end
 		local conflict = false
 		for j2,s2 in pairs(sections) do
 			if sectionsConflict(section, s2) then
@@ -270,7 +236,7 @@ local function getSched(
 		table.insert(sections, section)
 		getSched(
 			wants, i, sections,
-			wanti, ci + 1, workingSchedules)
+			wanti, ci + 1, workingSchedules, db)
 		table.remove(sections)
 	end
 
@@ -287,7 +253,7 @@ local function getSched(
 		if duplicate then
 			getSched(
 				wants, i, sections,
-				wanti, ci + 1, workingSchedules)
+				wanti, ci + 1, workingSchedules, db)
 		else
 			for j,section in pairs(sectionsb) do
 				dosec(i, section)
@@ -296,27 +262,55 @@ local function getSched(
 	end
 end
 
-local function getSchedule(wants)
-	local ws = {}
-	getSched(wants, 0, {}, 1, 0, ws)
-	print(#ws .. " schedules found")
-	local afterFilter = 0
-	for i,sections in pairs(ws) do
-		print()
-		local hasFriday = false
-		for k,sec in pairs(sections) do
-			for j,sess in pairs(sec.sessions) do
+local function removeFridays(db)
+	for k,class in pairs(db) do
+		local i = 1
+		while i <= #class.sections do
+			local section = class.sections[i]
+			local hasFriday = false
+			local hasEarly = false
+			for k,sess in pairs(section.sessions) do
 				if sess.day == "F" then
 					hasFriday = true
+					break
+				end
+				if sess.t0 < 600 then
+					hasEarly = true
+					break
 				end
 			end
-		end
-		if not hasFriday then
-			printSchedule(sections)
-			afterFilter = afterFilter + 1
+			if hasFriday or hasEarly then
+				table.remove(class.sections, i)
+			else
+				i = i + 1
+			end
 		end
 	end
-	print(afterFilter .. " after filter")
 end
 
-getSchedule(wants)
+local function getSchedule(wants)
+	local ws = {}
+	local db = loadListHybrid(wantsToList(wants), "202310")
+	removeFridays(db)
+	getSched(wants, 0, {}, 1, 0, ws, db)
+	print(#ws .. " schedules found")
+--	for i,sections in pairs(ws) do
+--		local hasFriday = false
+--		for k,sec in pairs(sections) do
+--			for j,sess in pairs(sec.sessions) do
+--				if sess.day == "F" then
+--					hasFriday = true
+--				end
+--			end
+--		end
+--		if not hasFriday then
+--			table.insert(nws, sections)
+--		end
+--	end
+--	print(#nws .. " after filter")
+	return ws
+end
+
+M.wantsToSchedule = getSchedule
+
+return M
