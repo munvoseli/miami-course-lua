@@ -70,9 +70,16 @@ end
 
 local scrolly = 0
 local seltile = nil
+local margin = 20
+local tilew = 140
+local tileh = 150
+local colwidth = tilew / 5
+local hspace = margin + tilew
+local vspace = margin + tileh
+local perrow = 10
 
 local function drawScheduleDetailed(sections)
-	local x0 = 1600
+	local x0 = perrow * hspace
 	local x1 = x0 + 20
 	local x2 = x1 + 80
 	local x3 = x2 + 80
@@ -127,16 +134,9 @@ local function modulo(a, b)
 end
 
 function love.wheelmoved(x, y)
-	scrolly = 10 * y + scrolly
+	scrolly = -10 * y + scrolly
 end
 function love.mousepressed(x, y, button, istouch, presses)
-	local margin = 20
-	local tilew = 140
-	local tileh = 150
-	local colwidth = tilew / 5
-	local hspace = margin + tilew
-	local vspace = margin + tileh
-	local perrow = 10
 	if modulo(x, hspace) > tilew then return end
 	if modulo(y, vspace) > tileh then return end
 	local col = math.floor(x / hspace)
@@ -157,10 +157,13 @@ function love.draw()
 	local vspace = margin + tileh
 	local perrow = 10
 	love.graphics.clear(255,255,255)
+	local ww, wh = love.graphics.getDimensions()
 	for i=1,math.min(300,#schedules) do
 		local x = ((i-1) % perrow) * hspace
-		local y = math.floor((i-1) / perrow) * vspace
-		drawSchedule(schedules[i], x, y - scrolly, colwidth, tileh)
+		local y = math.floor((i-1) / perrow) * vspace - scrolly
+		if -vspace < y and y < wh then
+			drawSchedule(schedules[i], x, y, colwidth, tileh)
+		end
 	end
 	if seltile ~= nil then
 		local sched = schedules[seltile]
