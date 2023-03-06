@@ -72,30 +72,31 @@ end
 
 local wants = {
 	{
-		ct = 2,
+		ct = 4,
 		possible = {
 			{ "CSE", "262" },
 			{ "CSE", "374" },
 			{ "CSE", "381" },
 			{ "CSE", "383" },
-		}
-	},
-	{
-		ct = 2,
-		possible = {
+			{ "CSE", "385" },
+			{ "CSE", "474" },
+			{ "ENG", "313" },
+			-- CSE 480 / 491?
+			{ "MTH", "425" },
 			{ "MTH", "441" },
 			{ "MTH", "411" },
 			{ "MTH", "438" },
 			{ "MTH", "483" },
 			{ "MTH", "486" },
 			{ "MTH", "491" },
+--			{ "STC", "135" },
 		}
 	},
 	{
 		ct = 1,
 		possible = {
 			{ "BIO", "115H" },
-			{ "RUS", "101H" },
+--			{ "RUS", "101H" },
 		}
 	},
 }
@@ -299,10 +300,23 @@ local function getSchedule(wants)
 	local ws = {}
 	getSched(wants, 0, {}, 1, 0, ws)
 	print(#ws .. " schedules found")
+	local afterFilter = 0
 	for i,sections in pairs(ws) do
 		print()
-		printSchedule(sections)
+		local hasFriday = false
+		for k,sec in pairs(sections) do
+			for j,sess in pairs(sec.sessions) do
+				if sess.day == "F" then
+					hasFriday = true
+				end
+			end
+		end
+		if not hasFriday then
+			printSchedule(sections)
+			afterFilter = afterFilter + 1
+		end
 	end
+	print(afterFilter .. " after filter")
 end
 
 getSchedule(wants)
