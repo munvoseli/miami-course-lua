@@ -288,9 +288,9 @@ local function removeFridays(db)
 	end
 end
 
-local function getSchedule(wants)
+local function getSchedule(wants, term)
 	local ws = {}
-	local db = loadListHybrid(wantsToList(wants), "202310")
+	local db = loadListHybrid(wantsToList(wants), term)
 	removeFridays(db)
 	getSched(wants, 0, {}, 1, 0, ws, db)
 	print(#ws .. " schedules found")
