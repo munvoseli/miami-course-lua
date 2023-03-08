@@ -78,11 +78,26 @@ local hspace = margin + tilew
 local vspace = margin + tileh
 local perrow = 10
 
-local function drawScheduleDetailed(sections)
+local function timeToTfh(t)
+	local pad = function(num)
+		if num < 10 then
+			return "0" .. num
+		end
+		return "" .. num
+	end
+	local h = math.floor(t/60)
+	local m = t - 60 * h
+	return pad(h) .. ":" .. pad(m)
+end
+
+local function drawScheduleDetailed(sections, ind)
 	local x0 = perrow * hspace
+	local tw = 60
 	local x1 = x0 + 20
-	local x2 = x1 + 80
-	local x3 = x2 + 80
+	local x2 = x1 + tw
+	local x3 = x2 + tw
+	local x4 = x3 + tw
+	local x5 = x4 + tw
 	local y = 0
 	local lh = 20
 	local sum = 0
@@ -91,10 +106,12 @@ local function drawScheduleDetailed(sections)
 	for i,sec in pairs(sections) do
 		sum = sum + sec.hours
 	end
+	love.graphics.print("Index: " .. ind, x0, y)
+	y = y + lh
 	love.graphics.print("Credit hours: " .. sum, x0, y)
 	y = y + lh
 	for i,sec in pairs(sections) do
-		love.graphics.print(sec.subcode .. " " .. sec.cnum, x1, y)
+		love.graphics.print(sec.subcode .. " " .. sec.cnum .. " " .. sec.section, x1, y)
 		y = y + lh
 	end
 	local days = {}
@@ -103,16 +120,20 @@ local function drawScheduleDetailed(sections)
 	days['W'] = {}
 	days['R'] = {}
 	days['F'] = {}
-	local insert = function(arr, sess)
+	local insert = function(arr, sess, sesssec)
 		local i = 1
-		while i <= #arr and arr[i].t0 < sess.t0 do
+		while i <= #arr and arr[i].sess.t0 < sess.t0 do
 			i = i + 1
 		end
-		table.insert(arr, i, sess)
+		table.insert(arr, i, sesssec)
 	end
 	for i,sec in pairs(sections) do
 		for j,sess in pairs(sec.sessions) do
-			insert(days[sess.day], sess)
+			local sesssec = {
+				sess = sess,
+				sec = sec
+			}
+			insert(days[sess.day], sess, sesssec)
 		end
 	end
 	for i=1,5 do
@@ -121,10 +142,13 @@ local function drawScheduleDetailed(sections)
 			'Wednesday', 'Thursday', 'Friday' }
 		love.graphics.print(dn[i], x0, y)
 		y = y + lh
-		for j,sess in pairs(days[dl[i]]) do
-			love.graphics.print(sess.t0, x1, y)
-			love.graphics.print(sess.t2, x2, y)
+		for j,sesssec in pairs(days[dl[i]]) do
+			local sess = sesssec.sess
+			local sec = sesssec.sec
+			love.graphics.print(timeToTfh(sess.t0), x1, y)
+			love.graphics.print(timeToTfh(sess.t2), x2, y)
 			love.graphics.print(sess.building, x3, y)
+			love.graphics.print(sec.subcode .. " " .. sec.cnum, x4, y)
 			y = y + lh
 		end
 	end
@@ -167,6 +191,6 @@ function love.draw()
 	end
 	if seltile ~= nil then
 		local sched = schedules[seltile]
-		drawScheduleDetailed(sched)
+		drawScheduleDetailed(sched, seltile)
 	end
 end
