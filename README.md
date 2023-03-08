@@ -1,3 +1,10 @@
+NOTICE:
+There is no reason to use this project yet,
+since it is very bad,
+and the data for Fall 2023 is not yet available.
+
+---
+
 This project is not user-friendly yet, and at this time requires editing the source.
 
 This project depends on Love2D and lunajson.  lunajson can be installed with the luarocks package manager.
