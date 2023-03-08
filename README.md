@@ -5,9 +5,15 @@ and the data for Fall 2023 is not yet available.
 
 ---
 
-This project is not user-friendly yet, and at this time requires editing the source.
+This project is not user-friendly yet,
+and at this time requires editing the source.
 
-This project depends on Love2D and lunajson.  lunajson can be installed with the luarocks package manager.
+This project depends on Love2D and lunajson.
+lunajson can be installed with the luarocks package manager.
+
+If I ever get this to be user-friendly,
+so you don't have to edit the source code,
+I will package all of this into an executable.
 
 1. If you're not on Linux,
 install luarocks from https://luarocks.org/
