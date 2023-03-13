@@ -19,20 +19,21 @@ local wants = {
 			{ "MTH", "483" },
 			{ "MTH", "486" },
 			{ "MTH", "491" },
---			{ "STC", "135" },
+			{ "STC", "135" },
 		}
 	},
 	{
 		ct = 1,
 		possible = {
-			{ "BIO", "115H" },
-			{ "RUS", "101H" },
+--			{ "BIO", "115H" },
+			{ "MBI", "131H" },
+--			{ "RUS", "101H" },
 		}
 	},
 }
 
 --want_resolution.loadDb(wants)
-local schedules = want_resolution.wantsToSchedule(wants, "202310")
+local schedules = want_resolution.wantsToSchedule(wants, "202410")
 
 
 local function drawSchedule(sections, xo, yo, colwidth, height)
