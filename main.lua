@@ -30,6 +30,16 @@ local wants = {
 --			{ "RUS", "101H" },
 		}
 	},
+	{
+		ct = 1,
+		possible = {
+			{ "MBI", "131H" },
+		}
+	}
+}
+local anyof = {
+--	{ "BIO", "116H" },
+--	{ "RUS", "101H" },
 }
 
 --want_resolution.loadDb(wants)

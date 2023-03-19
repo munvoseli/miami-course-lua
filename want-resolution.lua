@@ -82,6 +82,13 @@ local function wantsToList(wants)
 	end
 	return list
 end
+local function wantsAndAnyofToList(wants, anyof)
+	local list = wantsToList(wants)
+	for k,v in pairs(anyof) do
+		table.insert(list, v)
+	end
+	return list
+end
 
 local function sessionListsConflict(l1, l2)
 	local sessionsConflict = function(a, b)
@@ -103,6 +110,30 @@ local function sectionsConflict(s1, s2)
 	return sessionListsConflict(s1.sessions, s2.sessions)
 end
 
+local function sectionConflictsWithSchedule(sec, sections)
+	for j2,s2 in pairs(sections) do
+		if sectionsConflict(sec, s2) then
+			return true
+		end
+	end
+	return false
+end
+local function everySectionOfCourseConflictsWithSchedule(courseSections, scheduleSections)
+	for k,courseSection in pairs(courseSections) do
+		if not sectionConflictsWithSchedule(courseSection, scheduleSections) then
+			return false -- no-conflict exists
+		end
+	end
+	return true
+end
+local function anyCourseConflictsWithSchedule(courses, scheduleSections)
+	for k,courseSections in pairs(courses) do
+		if everySectionOfCourseConflictsWithSchedule(courseSections, scheduleSections) then
+			return true
+		end
+	end
+	return false
+end
 
 local function coursesToSectionLists(courses, db)
 	local list = {}
@@ -210,7 +241,7 @@ end
 local function getSched(
 	wants, lc, sections,
 	wanti, ci, workingSchedules,
-	db
+	db, additionalClasses
 )
 	if wants[wanti].ct == ci then
 		ci = 0
@@ -219,6 +250,9 @@ local function getSched(
 		if wanti > #wants then
 --			print("Schedule:")
 --			printSchedule(sections)
+			if anyCourseConflictsWithSchedule(additionalClasses, sections) then
+				return
+			end
 			local clone = {}
 			for i = 1,#sections do
 				table.insert(clone, sections[i])
@@ -231,28 +265,26 @@ local function getSched(
 	local coursestart = lc + 1
 	local courseend = #wants[wanti].possible
 
+	local recur = function(i)
+		getSched(
+			wants, i, sections,
+			wanti, ci + 1, workingSchedules, db, additionalClasses
+		)
+	end
+
 	local dosec = function(i, section)
-		local conflict = false
-		for j2,s2 in pairs(sections) do
-			if sectionsConflict(section, s2) then
-				conflict = true
-				break
-			end
-		end
-		if conflict then
+		if sectionConflictsWithSchedule(section, sections) then
 			return
 		end
 		table.insert(sections, section)
-		getSched(
-			wants, i, sections,
-			wanti, ci + 1, workingSchedules, db)
+		recur(i)
 		table.remove(sections)
 	end
 
 	for i=coursestart, courseend do
 		local subj = wants[wanti].possible[i][1]
 		local num  = wants[wanti].possible[i][2]
-		local sectionsb = db[subj .. " " .. num].sections
+		local courseSections = db[subj .. " " .. num].sections
 		local duplicate = false
 		for j2,s2 in pairs(sections) do
 			if s2.subcode == subj and s2.cnum == num then
@@ -260,11 +292,9 @@ local function getSched(
 			end
 		end
 		if duplicate then
-			getSched(
-				wants, i, sections,
-				wanti, ci + 1, workingSchedules, db)
+			recur(i)
 		else
-			for j,section in pairs(sectionsb) do
+			for j,section in pairs(courseSections) do
 				dosec(i, section)
 			end
 		end
@@ -303,7 +333,7 @@ local function getSchedule(wants, anyof, term, campus)
 	local ws = {}
 	local db = loadListHybrid(wantsAndAnyofToList(wants, anyof), term, campus)
 	removeFridays(db)
-	getSched(wants, 0, {}, 1, 0, ws, db)
+	getSched(wants, 0, {}, 1, 0, ws, db, coursesToSectionLists(anyof, db))
 	print(#ws .. " schedules found")
 --	for i,sections in pairs(ws) do
 --		local hasFriday = false
