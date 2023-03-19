@@ -104,11 +104,20 @@ local function sectionsConflict(s1, s2)
 end
 
 
-local function loadListInternet(list, term)
+local function coursesToSectionLists(courses, db)
+	local list = {}
+	for k,v in pairs(courses) do
+		local l = db[v[1] .. " " .. v[2]].sections
+		table.insert(list, l)
+	end
+	return list
+end
+
+local function loadListInternet(list, term, campus)
 	local db = {}
 	for i,c in pairs(list) do
 		print("Getting " .. c[1] .. " " .. c[2])
-		local secs = miami_api.infoToSections(c[1], c[2], term)
+		local secs = miami_api.infoToSections(c[1], c[2], term, campus)
 		local h = {
 			subcode = c[1],
 			cnum = c[2],
@@ -131,7 +140,7 @@ local function loadListLocal(list, term)
 	f:close()
 	return lunajson.decode(r)
 end
-local function loadListHybrid(list, term)
+local function loadListHybrid(list, term, campus)
 	local db = loadListLocal(list, term)
 	for i,c in pairs(list) do
 		local k = c[1] .. " " .. c[2]
@@ -139,7 +148,7 @@ local function loadListHybrid(list, term)
 			print(k .. " cached")
 		else
 			print("Getting " .. k)
-			local secs = miami_api.infoToSections(c[1], c[2], term)
+			local secs = miami_api.infoToSections(c[1], c[2], term, campus)
 			db[k] = {
 				subcode = c[1],
 				cnum = c[2],
@@ -288,9 +297,11 @@ local function removeFridays(db)
 	end
 end
 
-local function getSchedule(wants, term)
+-- "and an additional course which could be any of"
+
+local function getSchedule(wants, anyof, term, campus)
 	local ws = {}
-	local db = loadListHybrid(wantsToList(wants), term)
+	local db = loadListHybrid(wantsAndAnyofToList(wants, anyof), term, campus)
 	removeFridays(db)
 	getSched(wants, 0, {}, 1, 0, ws, db)
 	print(#ws .. " schedules found")

@@ -33,7 +33,7 @@ local wants = {
 }
 
 --want_resolution.loadDb(wants)
-local schedules = want_resolution.wantsToSchedule(wants, "202410")
+local schedules = want_resolution.wantsToSchedule(wants, anyof, "202410", "O")
 
 
 local function drawSchedule(sections, xo, yo, colwidth, height)
