@@ -172,6 +172,7 @@ function love.wheelmoved(x, y)
 	scrolly = -10 * y + scrolly
 end
 function love.mousepressed(x, y, button, istouch, presses)
+	local x, y = love.mouse.getPosition()
 	if modulo(x, hspace) > tilew then return end
 	if modulo(y, vspace) > tileh then return end
 	local col = math.floor(x / hspace)
@@ -191,7 +192,11 @@ function love.draw()
 	local hspace = margin + tilew
 	local vspace = margin + tileh
 	local perrow = 10
-	love.graphics.clear(255,255,255)
+	if love.mouse.isDown("1") then
+		love.graphics.clear(0.9,0.9,0.9)
+	else
+		love.graphics.clear(1,1,1)
+	end
 	local ww, wh = love.graphics.getDimensions()
 	for i=1,math.min(300,#schedules) do
 		local x = ((i-1) % perrow) * hspace
@@ -200,6 +205,13 @@ function love.draw()
 			drawSchedule(schedules[i], x, y, colwidth, tileh)
 		end
 	end
+
+	local x, y = love.mouse.getPosition()
+	love.graphics.setColor(0, 0, 0)
+	if x ~= nil and y ~= nil then
+		love.graphics.rectangle("fill", x, y, 10, 10)
+	end
+	
 	if seltile ~= nil then
 		local sched = schedules[seltile]
 		drawScheduleDetailed(sched, seltile)
